@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.9] - 2026-08-13
+
+### Added
+
+- Chat flow test for image attachments: the chip renders, the image reaches the API request as base64 (media type + PNG payload verified) and the session keeps the image path (85 tests total)
+
 ## [0.7.8] - 2026-08-13
 
 ### Added

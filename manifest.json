@@ -1,7 +1,7 @@
 {
   "id": "midian",
   "name": "Midian",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "minAppVersion": "1.8.0",
   "description": "A lightweight mobile-first AI chat workspace. Streams Claude and OpenAI-compatible models over HTTP; sessions stay in your vault.",
   "author": "wuyifan-code",

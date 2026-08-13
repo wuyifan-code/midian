@@ -298,3 +298,24 @@ test('editing the last user message restores it to the composer and truncates', 
   const saved = JSON.parse(adapter.files.get(newSessionFile()));
   assert.equal(saved.messages.length, 0, 'session must be truncated before the edited message');
 });
+
+test('image attachments are sent as base64 and kept in the session', async () => {
+  startTurn('tool');
+  const imagePath = 'img/pic.png';
+  adapter.binaryFiles.set(imagePath, new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  view.addImage(imagePath);
+  const root = view.contentEl.children[0];
+  assert.ok(root.first('midian-chip-image'), 'image chip should render in the composer');
+  view.textarea.value = 'what is this';
+
+  const sendPromise = view.send();
+  await waitFor(() => root.findAll('midian-tool-call').length > 0);
+  root.first('midian-tool-call').first('midian-tool-btn').click();
+  await sendPromise;
+
+  const firstBody = JSON.stringify(requestBodies[0]);
+  assert.ok(firstBody.includes('image/png'), 'request must include the image media type');
+  assert.ok(firstBody.includes('iVBOR'), 'request must include base64 image data (PNG magic)');
+  const saved = adapter.files.get(newSessionFile());
+  assert.ok(saved.includes('img/pic.png'), 'session must keep the image path');
+});

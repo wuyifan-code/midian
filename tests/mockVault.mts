@@ -3,10 +3,11 @@ import type { Vault } from 'obsidian';
 /** In-memory DataAdapter stand-in for store tests; never used by the plugin. */
 export class MockAdapter {
   files = new Map<string, string>();
+  binaryFiles = new Map<string, Uint8Array>();
   dirs = new Set<string>();
 
   async exists(path: string): Promise<boolean> {
-    return this.files.has(path) || this.dirs.has(path);
+    return this.files.has(path) || this.binaryFiles.has(path) || this.dirs.has(path);
   }
 
   async mkdir(path: string): Promise<void> {
@@ -15,6 +16,18 @@ export class MockAdapter {
 
   async read(path: string): Promise<string> {
     return this.files.get(path) ?? '';
+  }
+
+  async readBinary(path: string): Promise<ArrayBuffer> {
+    const data = this.binaryFiles.get(path);
+    if (!data) {
+      throw new Error(`no binary file: ${path}`);
+    }
+    return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+  }
+
+  getResourcePath(path: string): string {
+    return `vault://${path}`;
   }
 
   async write(path: string, content: string): Promise<void> {
