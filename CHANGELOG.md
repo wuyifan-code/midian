@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.15] - 2026-08-13
+
+### Added
+
+- Settings tab render test: `display()` builds all nine sections without throwing and API key fields render as password inputs (109 tests total)
+- Chat flow guard test: sending without an API key shows a notice and writes no session file
+
 ## [0.7.14] - 2026-08-13
 
 ### Added

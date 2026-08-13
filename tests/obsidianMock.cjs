@@ -236,14 +236,35 @@ class FakeMenu {
 class FakeNotice { constructor() {} }
 
 class FakeSetting {
+  constructor(containerEl) {
+    this.el = containerEl ? containerEl.createDiv('setting-item') : new FakeEl();
+  }
+
   setName() { return this; }
   setDesc() { return this; }
-  addText() { return { setPlaceholder() { return this; }, setValue() { return this; }, onChange() { return this; }, inputEl: new FakeEl() }; }
-  addTextArea() { return this.addText(); }
-  addToggle() { return { setValue() { return this; }, onChange() { return this; } }; }
-  addDropdown() { return { addOption() { return this; }, setValue() { return this; }, onChange() { return this; } }; }
-  addButton() { return { setButtonText() { return this; }, setDisabled() { return this; }, onClick() { return this; } }; }
-  addExtraButton() { return { setIcon() { return this; }, setTooltip() { return this; }, onClick() { return this; } }; }
+  addText(cb) {
+    const input = new FakeEl('input');
+    this.el.appendChild(input);
+    cb({ setPlaceholder() { return this; }, setValue() { return this; }, onChange() { return this; }, inputEl: input });
+    return this;
+  }
+  addTextArea(cb) { return this.addText(cb); }
+  addToggle(cb) {
+    cb({ setValue() { return this; }, onChange() { return this; } });
+    return this;
+  }
+  addDropdown(cb) {
+    cb({ addOption() { return this; }, setValue() { return this; }, onChange() { return this; } });
+    return this;
+  }
+  addButton(cb) {
+    cb({ setButtonText() { return this; }, setDisabled() { return this; }, onClick() { return this; } });
+    return this;
+  }
+  addExtraButton(cb) {
+    cb({ setIcon() { return this; }, setTooltip() { return this; }, onClick() { return this; } });
+    return this;
+  }
 }
 
 class FakePluginSettingTab {

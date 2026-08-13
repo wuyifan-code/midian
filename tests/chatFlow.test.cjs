@@ -412,3 +412,17 @@ test('memory consolidation folds short-term notes into the user profile', async 
     settings.memory.enabled = false;
   }
 });
+
+test('sending without an API key shows a notice and writes nothing', async () => {
+  const savedKey = settings.anthropic.apiKey;
+  settings.anthropic.apiKey = '';
+  try {
+    startTurn('tool');
+    const before = adapter.files.size;
+    await view.send();
+    assert.equal(adapter.files.size, before, 'no session file may be written without a key');
+    assert.equal(view.streaming, false);
+  } finally {
+    settings.anthropic.apiKey = savedKey;
+  }
+});
