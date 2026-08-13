@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.7] - 2026-08-13
+
+### Added
+
+- Chat flow tests: drive the real ChatView end-to-end without a browser — send a message, stream the reply, approve a tool card mid-flight (real dispatcher reads the vault), verify the tool result reaches the second API request and the session persists; rewind verified (81 tests total)
+
 ## [0.7.6] - 2026-08-13
 
 ### Added

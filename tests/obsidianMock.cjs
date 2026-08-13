@@ -7,20 +7,187 @@ const Module = require('node:module');
 const registered = { views: [], commands: [], ribbon: 0, settingsTabs: 0, events: 0 };
 
 class FakeEl {
-  createEl() { return new FakeEl(); }
-  createDiv() { return new FakeEl(); }
-  createSpan() { return new FakeEl(); }
-  empty() {}
-  addClass() {}
-  removeClass() {}
-  toggleClass() {}
-  setText() {}
-  setAttr() {}
-  addEventListener() {}
-  hide() {}
-  show() {}
-  appendChild() {}
-  remove() {}
+  constructor(tag = 'div') {
+    this.tagName = String(tag).toUpperCase();
+    this.children = [];
+    this.parent = null;
+    this.classes = [];
+    this.attrs = {};
+    this.listeners = {};
+    this.style = {};
+    this.textContent = '';
+    this.value = '';
+    this.checked = false;
+    this.isConnected = true;
+    this.scrollHeight = 0;
+    this.scrollTop = 0;
+    this.clientHeight = 0;
+  }
+
+  createEl(tag, opts = {}) {
+    const el = new FakeEl(tag);
+    if (opts.cls) {
+      el.addClass(opts.cls);
+    }
+    if (opts.attr) {
+      for (const [k, v] of Object.entries(opts.attr)) {
+        el.setAttribute(k, v);
+      }
+    }
+    this.appendChild(el);
+    return el;
+  }
+
+  createDiv(cls) {
+    const el = new FakeEl('div');
+    if (cls) {
+      el.addClass(cls);
+    }
+    this.appendChild(el);
+    return el;
+  }
+
+  createSpan(cls) {
+    return this.createDiv(cls);
+  }
+
+  appendChild(el) {
+    if (el.parent) {
+      el.parent.removeChild(el);
+    }
+    el.parent = this;
+    this.children.push(el);
+    return el;
+  }
+
+  removeChild(el) {
+    const i = this.children.indexOf(el);
+    if (i !== -1) {
+      this.children.splice(i, 1);
+      el.parent = null;
+    }
+  }
+
+  insertBefore(el, ref) {
+    if (el.parent) {
+      el.parent.removeChild(el);
+    }
+    el.parent = this;
+    const i = ref ? this.children.indexOf(ref) : -1;
+    if (i === -1) {
+      this.children.push(el);
+    } else {
+      this.children.splice(i, 0, el);
+    }
+  }
+
+  remove() {
+    if (this.parent) {
+      this.parent.removeChild(this);
+    }
+  }
+
+  addClass(cls) {
+    for (const c of String(cls).split(/\s+/)) {
+      if (c && !this.classes.includes(c)) {
+        this.classes.push(c);
+      }
+    }
+  }
+
+  removeClass(cls) {
+    this.classes = this.classes.filter((c) => c !== cls);
+  }
+
+  hasClass(cls) {
+    return this.classes.includes(cls);
+  }
+
+  toggleClass(cls, on) {
+    if (on === undefined) {
+      on = !this.hasClass(cls);
+    }
+    if (on) {
+      this.addClass(cls);
+    } else {
+      this.removeClass(cls);
+    }
+  }
+
+  setAttribute(name, value) {
+    this.attrs[name] = String(value);
+  }
+
+  removeAttribute(name) {
+    delete this.attrs[name];
+  }
+
+  setText(text) {
+    this.textContent = String(text);
+  }
+
+  appendText(text) {
+    this.textContent += String(text);
+  }
+
+  addEventListener(type, fn) {
+    (this.listeners[type] ??= []).push(fn);
+  }
+
+  click() {
+    for (const fn of this.listeners.click ?? []) {
+      fn({ stopPropagation() {}, preventDefault() {} });
+    }
+  }
+
+  focus() {}
+  select() {}
+  setSelectionRange() {}
+
+  hide() {
+    this.addClass('is-hidden');
+  }
+
+  show() {
+    this.removeClass('is-hidden');
+  }
+
+  empty() {
+    this.children = [];
+    this.textContent = '';
+  }
+
+  findAll(cls) {
+    const out = [];
+    const walk = (el) => {
+      for (const child of el.children) {
+        if (child.hasClass(cls)) {
+          out.push(child);
+        }
+        walk(child);
+      }
+    };
+    walk(this);
+    return out;
+  }
+
+  first(cls) {
+    return this.findAll(cls)[0] ?? null;
+  }
+
+  querySelector(sel) {
+    if (sel.startsWith('.')) {
+      return this.first(sel.slice(1));
+    }
+    return null;
+  }
+
+  querySelectorAll(sel) {
+    if (sel.startsWith('.')) {
+      return this.findAll(sel.slice(1));
+    }
+    return [];
+  }
 }
 
 class FakeComponent {
@@ -148,4 +315,4 @@ function installObsidianMock() {
   };
 }
 
-module.exports = { installObsidianMock, registered, setRequestUrlHandler };
+module.exports = { installObsidianMock, registered, setRequestUrlHandler, FakeEl };
