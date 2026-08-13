@@ -39,6 +39,15 @@ Obsidian 桌面端的 AI 插件几乎都依赖本地 CLI（Codex、Claude Code�
 
 ## 安装（手动 / 开发）
 
+### 通过 BRAT 安装（推荐尝鲜）
+
+1. 安装 [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) 插件
+2. 命令面板运行 `BRAT: Add a beta plugin for testing`
+3. 输入 `https://github.com/wuyifan-code/midian` 并确认
+4. 新版本发布后，运行 `BRAT: Check for updates`
+
+### 手动 / 开发
+
 1. 构建插件：
 
    ```bash
@@ -67,6 +76,10 @@ Obsidian 桌面端的 AI 插件几乎都依赖本地 CLI（Codex、Claude Code�
 | 记忆 | 开关记忆引擎、记忆模型 |
 
 OpenAI 兼容端点示例：`https://api.moonshot.cn/v1`（Kimi）、`https://api.deepseek.com`（DeepSeek）。
+
+### 关于流式与 CORS
+
+Midian 优先使用 `fetch` 流式输出（逐字渲染）；当端点不允许浏览器跨域（CORS）时，自动降级为 `requestUrl` 非流式请求——功能不变，只是回复一次到位。Anthropic 官方端点支持浏览器直连（已带 `anthropic-dangerous-direct-browser-access` 头）；部分 OpenAI 兼容服务（如 DeepSeek）不开放浏览器 CORS，会走降级路径。可在设置页「测试连接」快速验证端点。
 
 ## 开发
 

@@ -1,15 +1,10 @@
 import type { ChatMessage, ProviderConfig, ProviderId } from '../providers/types';
 import { runChat } from '../providers/registry';
 import { CONSOLIDATION_PROMPT, EXTRACTION_PROMPT, TITLE_PROMPT } from './prompt';
+import { renderTranscript, stripFences } from './transcript';
 
 const SHOT_TIMEOUT_MS = 60_000;
 const CONSOLIDATE_AT_LINES = 60;
-
-function renderTranscript(messages: ChatMessage[]): string {
-  return messages
-    .map((m) => `${m.role === 'user' ? '用户' : '助手'}: ${m.content}`)
-    .join('\n');
-}
 
 async function runSingleShot(providerId: ProviderId, config: ProviderConfig, prompt: string): Promise<string> {
   return new Promise((resolve) => {
@@ -39,13 +34,6 @@ async function runSingleShot(providerId: ProviderId, config: ProviderConfig, pro
       controller.signal,
     );
   });
-}
-
-function stripFences(text: string): string {
-  return text
-    .replace(/^```(?:markdown|md|json)?\s*/i, '')
-    .replace(/```\s*$/, '')
-    .trim();
 }
 
 export async function extractMemory(

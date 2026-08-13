@@ -7,7 +7,14 @@ export function truncateText(text: string, maxChars: number): string {
   if (text.length <= maxChars || maxChars <= 0) {
     return text;
   }
-  return `${text.slice(0, Math.max(0, maxChars - 1))}…`;
+  let end = Math.max(0, maxChars - 1);
+  // Do not split a surrogate pair: if the cut lands on a low surrogate,
+  // include it so the emoji before the cut stays intact.
+  const code = text.charCodeAt(end);
+  if (code >= 0xdc00 && code <= 0xdfff) {
+    end += 1;
+  }
+  return `${text.slice(0, end)}…`;
 }
 
 export function assembleContextBlocks(blocks: ContextBlock[], budgetChars: number): string {
