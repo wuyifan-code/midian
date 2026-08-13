@@ -6,6 +6,10 @@ export interface HttpPostOptions {
   body: unknown;
 }
 
+// Mobile networks can stall mid-stream; after this much silence the stream
+// is considered dead and the provider falls back to non-streaming.
+export const STREAM_INACTIVITY_TIMEOUT_MS = 120_000;
+
 export async function fetchPost(options: HttpPostOptions, signal: AbortSignal): Promise<Response> {
   return fetch(options.url, {
     method: 'POST',
@@ -15,23 +19,49 @@ export async function fetchPost(options: HttpPostOptions, signal: AbortSignal): 
   });
 }
 
-export async function streamResponseText(response: Response, onText: (text: string) => void): Promise<void> {
+export async function streamResponseText(
+  response: Response,
+  onText: (text: string) => void,
+  inactivityMs: number = STREAM_INACTIVITY_TIMEOUT_MS,
+): Promise<void> {
   const body = response.body;
   if (!body) {
     throw new Error('Response has no body');
   }
   const reader = body.getReader();
   const decoder = new TextDecoder();
+  let timedOut = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const arm = () => {
+    if (inactivityMs <= 0) {
+      return;
+    }
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      timedOut = true;
+      void reader.cancel();
+    }, inactivityMs);
+  };
   try {
+    arm();
     for (;;) {
       const { done, value } = await reader.read();
       if (done) {
         break;
       }
+      arm();
       onText(decoder.decode(value, { stream: true }));
     }
   } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
     reader.releaseLock();
+  }
+  if (timedOut) {
+    throw new Error('Stream timed out: no data received for a while');
   }
 }
 

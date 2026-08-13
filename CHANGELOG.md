@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.13] - 2026-08-13
+
+### Added
+
+- **Stream inactivity timeout**: if a streaming response goes silent for 120s (stalled mobile connection), the stream is cancelled and the provider automatically falls back to non-streaming instead of hanging forever (94 tests total)
+
 ## [0.7.12] - 2026-08-13
 
 ### Added
