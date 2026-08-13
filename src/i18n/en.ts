@@ -76,6 +76,8 @@ export const en: Record<LocaleKey, string> = {
   'settings.anthropic': 'Claude (Anthropic)',
   'settings.openai': 'OpenAI-compatible',
   'settings.apiKey': 'API key',
+  'settings.showKey': 'Show API key',
+  'settings.hideKey': 'Hide API key',
   'settings.apiKey.anthropic.desc': 'Create one at console.anthropic.com',
   'settings.apiKey.openai.desc': 'API key for Kimi, DeepSeek, MiniMax, GLM, Qwen, etc.',
   'settings.baseUrl': 'Base URL',

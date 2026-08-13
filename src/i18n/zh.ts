@@ -74,6 +74,8 @@ export const zh = {
   'settings.anthropic': 'Claude（Anthropic）',
   'settings.openai': 'OpenAI 兼容',
   'settings.apiKey': 'API Key',
+  'settings.showKey': '显示 API Key',
+  'settings.hideKey': '隐藏 API Key',
   'settings.apiKey.anthropic.desc': '在 console.anthropic.com 创建',
   'settings.apiKey.openai.desc': 'Kimi、DeepSeek、MiniMax、GLM、Qwen 等服务的 API Key',
   'settings.baseUrl': 'Base URL',

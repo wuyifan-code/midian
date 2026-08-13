@@ -34,18 +34,15 @@ export class MidianSettingsTab extends PluginSettingTab {
       );
 
     containerEl.createEl('h3', { text: t('settings.anthropic') });
-    new Setting(containerEl)
-      .setName(t('settings.apiKey'))
-      .setDesc(t('settings.apiKey.anthropic.desc'))
-      .addText((text) =>
-        text
-          .setPlaceholder('sk-ant-…')
-          .setValue(settings.anthropic.apiKey)
-          .onChange(async (value) => {
-            settings.anthropic.apiKey = value.trim();
-            await this.plugin.saveSettings();
-          }),
-      );
+    this.addApiKeySetting(
+      containerEl,
+      t('settings.apiKey'),
+      t('settings.apiKey.anthropic.desc'),
+      () => settings.anthropic.apiKey,
+      (value) => {
+        settings.anthropic.apiKey = value;
+      },
+    );
     new Setting(containerEl)
       .setName(t('settings.baseUrl'))
       .setDesc(t('settings.baseUrl.anthropic.desc'))
@@ -83,18 +80,15 @@ export class MidianSettingsTab extends PluginSettingTab {
       });
 
     containerEl.createEl('h3', { text: t('settings.openai') });
-    new Setting(containerEl)
-      .setName(t('settings.apiKey'))
-      .setDesc(t('settings.apiKey.openai.desc'))
-      .addText((text) =>
-        text
-          .setPlaceholder('sk-…')
-          .setValue(settings.openai.apiKey)
-          .onChange(async (value) => {
-            settings.openai.apiKey = value.trim();
-            await this.plugin.saveSettings();
-          }),
-      );
+    this.addApiKeySetting(
+      containerEl,
+      t('settings.apiKey'),
+      t('settings.apiKey.openai.desc'),
+      () => settings.openai.apiKey,
+      (value) => {
+        settings.openai.apiKey = value;
+      },
+    );
     new Setting(containerEl)
       .setName(t('settings.baseUrl'))
       .setDesc(t('settings.baseUrl.openai.desc'))
@@ -259,5 +253,40 @@ export class MidianSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
+  }
+
+  private addApiKeySetting(
+    containerEl: HTMLElement,
+    name: string,
+    desc: string,
+    get: () => string,
+    set: (value: string) => void,
+  ): void {
+    let inputEl: HTMLInputElement | null = null;
+    new Setting(containerEl)
+      .setName(name)
+      .setDesc(desc)
+      .addText((text) => {
+        inputEl = text.inputEl;
+        inputEl.type = 'password';
+        text.setPlaceholder('sk-…').setValue(get());
+        text.onChange(async (value) => {
+          set(value.trim());
+          await this.plugin.saveSettings();
+        });
+      })
+      .addExtraButton((button) => {
+        let visible = false;
+        button.setIcon('eye').setTooltip(t('settings.showKey'));
+        button.onClick(() => {
+          if (!inputEl) {
+            return;
+          }
+          visible = !visible;
+          inputEl.type = visible ? 'text' : 'password';
+          button.setIcon(visible ? 'eye-off' : 'eye');
+          button.setTooltip(visible ? t('settings.hideKey') : t('settings.showKey'));
+        });
+      });
   }
 }

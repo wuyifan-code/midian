@@ -1,5 +1,7 @@
 # Midian
 
+[![CI](https://github.com/wuyifan-code/midian/actions/workflows/ci.yml/badge.svg)](https://github.com/wuyifan-code/midian/actions)
+
 轻量、移动端优先的 Obsidian AI 工作空间插件。灵感来自 [Claudian Plus](https://github.com/wuyifan-code/Claudian-plus)，但为手机而生：无子进程、直连 HTTP API、流式输出，对话、记忆与工具全部留在 Vault 本地。
 
 A lightweight, mobile-first AI workspace for Obsidian, inspired by Claudian Plus but built for phones: no subprocesses, direct HTTP APIs, streaming output; conversations, memory, and tools all live in your vault.
@@ -72,7 +74,7 @@ OpenAI 兼容端点示例：`https://api.moonshot.cn/v1`（Kimi）、`https://ap
 npm run dev         # watch 构建（配合 OBSIDIAN_VAULT 自动拷贝）
 npm run typecheck
 npm test            # node:test 单测（SSE 解析、frontmatter、上下文预算、i18n）
-npm run build       # 生产构建
+npm run build       # 生产构建（minify，~73KB）
 ```
 
 ## 移动端验证清单
