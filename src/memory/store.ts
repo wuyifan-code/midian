@@ -1,19 +1,22 @@
-import { normalizePath, type Vault } from 'obsidian';
+import type { Vault } from 'obsidian';
+import { normalizeVaultPath } from '../utils/vaultPath.ts';
 
 const DEFAULT_DIR = '.midian/memory';
 
 export class MemoryStore {
   private readonly dir: string;
+  private readonly vault: Vault;
 
   constructor(
-    private readonly vault: Vault,
+    vault: Vault,
     dir: string = DEFAULT_DIR,
   ) {
-    this.dir = normalizePath(dir);
+    this.vault = vault;
+    this.dir = normalizeVaultPath(dir);
   }
 
   private pathFor(name: string): string {
-    return normalizePath(`${this.dir}/${name}`);
+    return normalizeVaultPath(`${this.dir}/${name}`);
   }
 
   private async ensureDir(): Promise<void> {

@@ -40,3 +40,25 @@ test('stringifyYamlValue quotes strings with special characters', () => {
   assert.equal(stringifyYamlValue([]), '[]');
   assert.equal(stringifyYamlValue([1, 'x']), '[1, "x"]');
 });
+
+test('parseFrontmatter handles dates, empty values and quoted array items', () => {
+  const { frontmatter } = parseFrontmatter('---\ndate: 2024-01-01\ntags: [a, "b c"]\nempty: \n---\nx');
+  assert.deepEqual(frontmatter, { date: '2024-01-01', tags: ['a', 'b c'], empty: '' });
+});
+
+test('parseFrontmatter parses booleans, numbers and null', () => {
+  const { frontmatter } = parseFrontmatter('---\non: true\noff: false\nn: -3\nnil: null\n---\n');
+  assert.deepEqual(frontmatter, { on: true, off: false, n: -3, nil: null });
+});
+
+test('stringifyYamlValue keeps date-like strings unquoted', () => {
+  assert.equal(stringifyYamlValue('2024-01-01'), '2024-01-01');
+});
+
+test('stringifyYamlValue quotes strings that would re-parse as other types', () => {
+  assert.equal(stringifyYamlValue('false'), '"false"');
+  assert.equal(stringifyYamlValue('true'), '"true"');
+  assert.equal(stringifyYamlValue('null'), '"null"');
+  assert.equal(stringifyYamlValue('3.5'), '"3.5"');
+  assert.equal(stringifyYamlValue('42'), '"42"');
+});

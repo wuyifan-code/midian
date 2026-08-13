@@ -1,13 +1,16 @@
-import { normalizePath, type Vault } from 'obsidian';
+import type { Vault } from 'obsidian';
+import { normalizeVaultPath } from '../utils/vaultPath.ts';
 import type { MidianSession } from './types';
 
 const DEFAULT_ROOT = '.midian/sessions';
 
 export class SessionStore {
   private readonly root: string;
+  private readonly vault: Vault;
 
-  constructor(private readonly vault: Vault, root: string = DEFAULT_ROOT) {
-    this.root = normalizePath(root);
+  constructor(vault: Vault, root: string = DEFAULT_ROOT) {
+    this.vault = vault;
+    this.root = normalizeVaultPath(root);
   }
 
   static newId(): string {
@@ -15,7 +18,7 @@ export class SessionStore {
   }
 
   private pathFor(id: string): string {
-    return normalizePath(`${this.root}/${id}.json`);
+    return normalizeVaultPath(`${this.root}/${id}.json`);
   }
 
   private async ensureRoot(): Promise<void> {

@@ -27,7 +27,14 @@ export function stringifyYamlValue(value: unknown): string {
     return 'null';
   }
   if (typeof value === 'string') {
-    if (value === '' || /[:#\n"'[\]{}]/.test(value) || value !== value.trim()) {
+    // Quote strings that would re-parse as another scalar type (bool, null,
+    // number) so user data round-trips faithfully.
+    if (
+      value === '' ||
+      /[:#\n"'[\]{}]/.test(value) ||
+      value !== value.trim() ||
+      /^(?:true|false|null|~|-?\d+(?:\.\d+)?)$/i.test(value.trim())
+    ) {
       return JSON.stringify(value);
     }
     return value;

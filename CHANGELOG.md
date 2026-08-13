@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.2] - 2026-08-13
+
+### Added
+
+- Unit tests for session and memory stores (in-memory adapter mock, 70 tests total)
+- `docs/SUBMISSION.md`: community plugin store submission checklist and exact PR contents
+
+### Fixed
+
+- `stringifyYamlValue` now quotes strings that would re-parse as booleans, null or numbers (e.g. `"false"`, `"3.5"`), so frontmatter round-trips faithfully
+- Session/memory stores no longer import `obsidian` at runtime (pure path util instead), which also makes them testable under node
+
 ## [0.7.1] - 2026-08-13
 
 ### Added
