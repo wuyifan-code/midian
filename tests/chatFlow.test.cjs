@@ -155,8 +155,18 @@ before(() => {
     async () => {},
   );
   view.app = {
-    vault: { adapter },
-    workspace: { getActiveFile: () => null, activeEditor: null },
+    vault: {
+      adapter,
+      create: async (path, content) => {
+        adapter.files.set(path, content);
+        return { path };
+      },
+    },
+    workspace: {
+      getActiveFile: () => null,
+      activeEditor: null,
+      getLeaf: () => ({ openFile: async () => {} }),
+    },
   };
   globalThis.fetch = async (url, opts) => {
     // Serve canned SSE only for the chat's own fake endpoint (dead port 9);
@@ -359,4 +369,22 @@ test('memory engine extracts and persists short-term notes', async () => {
   } finally {
     settings.memory.enabled = false;
   }
+});
+
+test('exporting a session creates a markdown note with its content', async () => {
+  startTurn('tool');
+  const sendPromise = view.send();
+  const root = view.contentEl.children[0];
+  await waitFor(() => root.findAll('midian-tool-call').length > 0);
+  root.first('midian-tool-call').first('midian-tool-btn').click();
+  await sendPromise;
+
+  const sessionId = view.activeSessionId;
+  await view.exportSession(sessionId);
+  const exports = [...adapter.files.keys()].filter((f) => f.startsWith('Midian Exports/'));
+  assert.equal(exports.length, 1, 'one exported note should be created');
+  const note = adapter.files.get(exports[0]);
+  assert.ok(note.includes('# '), 'export must have a title heading');
+  assert.ok(note.includes('read a.md'), 'export must contain the user message');
+  assert.ok(note.includes('Hello world'), 'export must contain the assistant reply');
 });

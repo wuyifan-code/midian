@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.12] - 2026-08-13
+
+### Added
+
+- Chat flow test for session export: the exported note is created under `Midian Exports/` with the title heading, user message and assistant reply (91 tests total)
+
 ## [0.7.11] - 2026-08-13
 
 ### Fixed
