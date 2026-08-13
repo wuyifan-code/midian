@@ -22,6 +22,7 @@ export const en: Record<LocaleKey, string> = {
   'chat.copy': 'Copy',
   'chat.copied': 'Copied to clipboard',
   'chat.copyFailed': 'Copy failed',
+  'chat.imageTooLarge': 'Image exceeds 5MB, skipped',
   'chat.retry': 'Retry',
   'chat.removeChip': 'Remove',
   'chat.untitled': 'Chat',

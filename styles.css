@@ -115,6 +115,10 @@
   overflow-y: auto;
 }
 
+.midian-markdown-host {
+  min-width: 0;
+}
+
 .midian-markdown {
   word-break: break-word;
 }

@@ -43,8 +43,11 @@ export function buildAssistantMessageEl(
     details.createDiv('midian-thinking-body').setText(message.thinking);
   }
   const host = body.createDiv('midian-markdown-host');
-  void MarkdownRenderer.render(app, message.content || '', host, '', parent).then(() =>
-    attachCodeCopyButtons(host),
+  // Render into a `.midian-markdown` wrapper so non-streaming messages share
+  // the same CSS scope as streamed ones (code blocks, images).
+  const target = host.createDiv('midian-markdown');
+  void MarkdownRenderer.render(app, message.content || '', target, '', parent).then(() =>
+    attachCodeCopyButtons(target),
   );
   addActionRow(wrap, () => onCopy(message.content));
   return wrap;

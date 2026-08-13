@@ -20,6 +20,7 @@ export const zh = {
   'chat.copy': '复制',
   'chat.copied': '已复制到剪贴板',
   'chat.copyFailed': '复制失败',
+  'chat.imageTooLarge': '图片超过 5MB，已跳过',
   'chat.retry': '重试',
   'chat.removeChip': '移除',
   'chat.untitled': '对话',

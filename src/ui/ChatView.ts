@@ -38,6 +38,10 @@ export const VIEW_TYPE_MIDIAN = 'midian-chat-view';
 
 const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 
+// Anthropic caps image payloads at 5MB; OpenAI-compatible endpoints vary, so
+// a conservative shared cap keeps requests within provider limits.
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
 const MEDIA_TYPES: Record<string, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
@@ -852,6 +856,10 @@ export class MidianChatView extends ItemView {
       }
       try {
         const buffer = await this.app.vault.adapter.readBinary(path);
+        if (buffer.byteLength > MAX_IMAGE_BYTES) {
+          new Notice(`${path.split('/').pop() ?? path}: ${t('chat.imageTooLarge')}`);
+          continue;
+        }
         images.push({ mediaType, data: arrayBufferToBase64(buffer) });
       } catch {
         // skip unreadable images

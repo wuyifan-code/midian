@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.1] - 2026-08-13
+
+### Added
+
+- Image attachments larger than 5MB are skipped with a notice instead of failing the request
+- `docs/MOBILE_TESTING.md`: structured real-device test checklist (Android / iOS)
+
+### Fixed
+
+- Non-streaming assistant messages now render inside the same `.midian-markdown` scope as streamed ones (code-block and image styles apply consistently)
+
 ## [0.7.0] - 2026-08-13
 
 ### Added
