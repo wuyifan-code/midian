@@ -9,7 +9,8 @@ A lightweight, mobile-first AI workspace for Obsidian, inspired by Claudian Plus
 ## 特性
 
 - **双 Provider**：Claude（Anthropic 原生协议）+ OpenAI 兼容端点（Kimi / DeepSeek / MiniMax / GLM / Qwen…）
-- **流式输出**：SSE 流式渲染；CORS 受限时自动降级为 `requestUrl` 非流式（移动端可用）
+- **流式输出**：SSE 流式渲染；CORS 受限或流式静默超时（120s）时自动降级为 `requestUrl` 非流式（移动端可用，永不悬挂）
+- **数据安全**：会话写入按会话串行化（FIFO 队列），后台任务（自动标题）原子合并，编辑/回退永不丢失
 - **Vault 工具**：`read_note` / `write_note` / `append_note` / `search_notes` / `list_folder` / `get_properties` / `update_properties` / `ask_user`
   - 双协议 tool-call（Anthropic tool_use + OpenAI function calling）
   - 写入类操作需要逐次批准，可「本次会话始终允许」；拒绝与失败都有明确反馈
@@ -86,8 +87,8 @@ Midian 优先使用 `fetch` 流式输出（逐字渲染）；当端点不允许�
 ```bash
 npm run dev         # watch 构建（配合 OBSIDIAN_VAULT 自动拷贝）
 npm run typecheck
-npm test            # node:test 单测（SSE 解析、frontmatter、上下文预算、i18n）
-npm run build       # 生产构建（minify，~73KB）
+npm test            # node:test 单测 + 集成 + 冒烟 + 对话流（109 个测试）
+npm run build       # 生产构建（minify，~78KB）
 ```
 
 ## 移动端验证清单
