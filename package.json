@@ -1,6 +1,6 @@
 {
   "name": "midian",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Midian - a lightweight mobile-first AI chat workspace for Obsidian",
   "main": "main.js",
   "engines": {

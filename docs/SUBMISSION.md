@@ -51,7 +51,7 @@ gh pr create --repo obsidianmd/obsidian-releases \
 - 全新代码实现，仅借鉴 Claudian Plus 的会话存储与交互概念（MIT，无源码复制）
 - 移动端优先：无子进程 / 无 home 目录 / 无 Node-only API，全部 Vault 内存储
 - 写入类工具逐次批准；`ask_user` 由 UI 拦截
-- 70+ 单元测试 + bundle 冒烟测试 + CI（typecheck / test / build）
+- 75+ 单元 / 集成 / 冒烟测试 + CI（typecheck / test / build）
 - 发布流程：tag → GitHub Actions → Release（BRAT 可用）
 
 ## 提交后

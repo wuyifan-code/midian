@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.5] - 2026-08-13
+
+### Added
+
+- Provider integration tests: drive the real streaming + tool-call loops of both protocols against a local SSE server, verifying text streaming, tool argument accumulation, tool-result re-sending and error surfacing (76 tests total)
+
 ## [0.7.4] - 2026-08-13
 
 ### Added
