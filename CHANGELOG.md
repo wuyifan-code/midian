@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.14] - 2026-08-13
+
+### Added
+
+- Tool dispatcher tests: read/write/append/list/search/get/update properties, traversal rejection, `ask_user` never dispatched (UI intercepts it), unknown tools fail gracefully (106 tests total)
+- Memory consolidation chat flow test: short-term notes fold into `user-profile.md` past the threshold and the log is cleared
+
 ## [0.7.13] - 2026-08-13
 
 ### Added

@@ -40,8 +40,8 @@ export class MockAdapter {
 
   async list(path: string): Promise<{ folders: string[]; files: string[] }> {
     const prefix = path === '/' ? '' : path;
-    const folders = [...this.dirs].filter((d) => d.startsWith(`${prefix}/`));
-    const files = [...this.files.keys()].filter((f) => f.startsWith(`${prefix}/`));
+    const folders = [...this.dirs].filter((d) => prefix === '' || d.startsWith(`${prefix}/`));
+    const files = [...this.files.keys()].filter((f) => prefix === '' || f.startsWith(`${prefix}/`));
     return { folders, files };
   }
 }

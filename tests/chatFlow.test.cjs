@@ -388,3 +388,27 @@ test('exporting a session creates a markdown note with its content', async () =>
   assert.ok(note.includes('read a.md'), 'export must contain the user message');
   assert.ok(note.includes('Hello world'), 'export must contain the assistant reply');
 });
+
+test('memory consolidation folds short-term notes into the user profile', async () => {
+  settings.memory.enabled = true;
+  try {
+    // Seed past the consolidation threshold (60 lines).
+    adapter.files.set(
+      '.midian/memory/short-term.md',
+      Array.from({ length: 61 }, (_, i) => `line ${i}`).join('\n'),
+    );
+    startTurn('tool');
+    const sendPromise = view.send();
+    const root = view.contentEl.children[0];
+    await waitFor(() => root.findAll('midian-tool-call').length > 0);
+    root.first('midian-tool-call').first('midian-tool-btn').click();
+    await sendPromise;
+
+    await waitFor(() => adapter.files.get('.midian/memory/user-profile.md') !== undefined);
+    const profile = adapter.files.get('.midian/memory/user-profile.md');
+    assert.ok(profile.includes('Hello world'), 'consolidated profile must be written');
+    assert.equal(adapter.files.get('.midian/memory/short-term.md'), '', 'short-term must be cleared');
+  } finally {
+    settings.memory.enabled = false;
+  }
+});
