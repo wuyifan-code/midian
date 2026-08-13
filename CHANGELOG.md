@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.11] - 2026-08-13
+
+### Fixed
+
+- **Concurrent session writes no longer clobber user edits.** A background auto-title save could land after an edit/rewind and restore deleted messages. SessionStore now serializes writes per session (FIFO queue, last-invoked wins) and exposes an atomic `mutate()` used by auto-title: it reloads inside the queue and bails out if the conversation changed while generating.
+
+### Added
+
+- Chat flow tests for auto-title (session renamed from the reply) and the memory engine (facts persisted to `.midian/memory/short-term.md`); store tests for write-queue serialization and atomic mutate (90 tests total)
+
 ## [0.7.10] - 2026-08-13
 
 ### Added

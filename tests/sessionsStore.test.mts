@@ -78,3 +78,37 @@ test('list handles many sessions in parallel', async () => {
   assert.equal(listed[0].id, 's49');
   assert.equal(listed[49].id, 's0');
 });
+
+test('concurrent saves are serialized per session (last invocation wins)', async () => {
+  const store = new SessionStore(makeVault());
+  const session = makeSession({ id: 'q1' });
+  await store.save(session);
+  const p1 = store.save({ ...session, messages: [{ role: 'user', content: 'one', createdAt: 1 }] });
+  const p2 = store.save({ ...session, messages: [{ role: 'user', content: 'two', createdAt: 2 }] });
+  await Promise.all([p1, p2]);
+  const loaded = await store.load('q1');
+  assert.equal(loaded?.messages[0]?.content, 'two');
+});
+
+test('mutate applies on the freshest state inside the write queue', async () => {
+  const store = new SessionStore(makeVault());
+  const session = makeSession({ id: 'q2' });
+  await store.save(session);
+  const writes: Promise<void>[] = [];
+  writes.push(
+    store.save({
+      ...session,
+      messages: [...session.messages, { role: 'assistant', content: 'a', createdAt: 2 }],
+    }),
+  );
+  writes.push(
+    store.mutate('q2', (fresh) => {
+      assert.equal(fresh.messages.length, 2, 'mutate must see the earlier queued save');
+      fresh.title = 'Merged';
+    }),
+  );
+  await Promise.all(writes);
+  const loaded = await store.load('q2');
+  assert.equal(loaded?.title, 'Merged');
+  assert.equal(loaded?.messages.length, 2);
+});

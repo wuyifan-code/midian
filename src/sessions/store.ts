@@ -7,6 +7,9 @@ const DEFAULT_ROOT = '.midian/sessions';
 export class SessionStore {
   private readonly root: string;
   private readonly vault: Vault;
+  // Per-session FIFO write queue: concurrent saves (e.g. streaming finish vs
+  // auto-title vs user rewind) never interleave; the last-invoked write wins.
+  private readonly writeQueues = new Map<string, Promise<unknown>>();
 
   constructor(vault: Vault, root: string = DEFAULT_ROOT) {
     this.vault = vault;
@@ -41,8 +44,34 @@ export class SessionStore {
   }
 
   async save(session: MidianSession): Promise<void> {
-    await this.ensureRoot();
-    await this.vault.adapter.write(this.pathFor(session.id), JSON.stringify(session, null, 2));
+    const id = session.id;
+    const prev = this.writeQueues.get(id) ?? Promise.resolve();
+    const run = prev.then(async () => {
+      await this.ensureRoot();
+      await this.vault.adapter.write(this.pathFor(id), JSON.stringify(session, null, 2));
+    });
+    this.writeQueues.set(id, run.catch(() => {}));
+    await run;
+  }
+
+  /**
+   * Load, apply a mutation, and save atomically within the session's write
+   * queue. The callback sees the freshest state (after all earlier queued
+   * writes), so background jobs can safely merge instead of clobber.
+   */
+  async mutate(id: string, apply: (session: MidianSession) => void): Promise<void> {
+    const prev = this.writeQueues.get(id) ?? Promise.resolve();
+    const run = prev.then(async () => {
+      const session = await this.load(id);
+      if (!session) {
+        return;
+      }
+      apply(session);
+      await this.ensureRoot();
+      await this.vault.adapter.write(this.pathFor(id), JSON.stringify(session, null, 2));
+    });
+    this.writeQueues.set(id, run.catch(() => {}));
+    await run;
   }
 
   async remove(id: string): Promise<void> {

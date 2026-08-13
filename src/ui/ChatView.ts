@@ -1154,9 +1154,16 @@ export class MidianChatView extends ItemView {
       const settings = this.getSettings();
       const title = await generateTitle(providerId, config, settings.memory.model, firstUser.content, session.messages[1].content);
       if (title && title.length > 0 && title.length < 40 && title !== session.title) {
-        session.title = title;
-        session.updatedAt = Date.now();
-        await this.store.save(session);
+        // Apply atomically inside the write queue and bail out if the
+        // conversation changed while generating (edit/rewind), so a stale
+        // title never clobbers user edits.
+        await this.store.mutate(session.id, (fresh) => {
+          if (fresh.messages.length !== session.messages.length) {
+            return;
+          }
+          fresh.title = title;
+          fresh.updatedAt = Date.now();
+        });
         await this.renderTitle();
       }
     } catch {

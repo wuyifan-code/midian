@@ -119,17 +119,14 @@ function textRound() {
 }
 
 function sseForRound(round) {
-  if (round > 2) {
-    // Background auto-title call: respond with no text so no title is set.
-    return sse('message_start', { type: 'message_start', message: { usage: { input_tokens: 1 } } }) +
-      sse('message_stop', { type: 'message_stop' });
-  }
   if (round === 1) {
     if (sseMode === 'ask') {
       return toolRound('ask_user', '{"question":"Are you ready?","options":["yes","no"]}', 'toolu_ask');
     }
     return toolRound('read_note', '{"path":"a.md"}', 'toolu_1');
   }
+  // Round 2 is the main chat text; round 3+ serves the background auto-title
+  // and memory-extraction calls with the same canned text.
   return textRound();
 }
 
@@ -238,7 +235,7 @@ test('rewind removes the last assistant turn and its user message', async () => 
   await view.rewind();
   const sessionFiles = [...adapter.files.keys()].filter((f) => f.startsWith('.midian/sessions/'));
   const saved = adapter.files.get(sessionFiles[sessionFiles.length - 1]);
-  assert.ok(!saved.includes('Hello world'), 'assistant turn must be removed by rewind');
+  assert.ok(!saved.includes('"content": "Hello world"'), 'assistant message must be removed by rewind');
   // The session title legitimately keeps the original prompt text.
   assert.ok(saved.includes('"messages": []'), 'session should end up empty');
 });
@@ -329,4 +326,37 @@ test('slash menu filters commands and inserts the template', () => {
   view.slashMenu.pick();
   assert.ok(view.textarea.value.startsWith('Summarize'), 'the template must be inserted');
   assert.ok(!view.slashMenu.visible, 'menu must close after picking');
+});
+
+test('auto-title renames the session after the first exchange', async () => {
+  startTurn('tool');
+  const sendPromise = view.send();
+  const root = view.contentEl.children[0];
+  await waitFor(() => root.findAll('midian-tool-call').length > 0);
+  root.first('midian-tool-call').first('midian-tool-btn').click();
+  await sendPromise;
+
+  const file = newSessionFile();
+  await waitFor(() => adapter.files.get(file)?.includes('"title": "Hello world"'));
+  assert.ok(adapter.files.get(file).includes('"title": "Hello world"'), 'title must be generated from the reply');
+});
+
+test('memory engine extracts and persists short-term notes', async () => {
+  settings.memory.enabled = true;
+  try {
+    startTurn('tool');
+    const sendPromise = view.send();
+    const root = view.contentEl.children[0];
+    await waitFor(() => root.findAll('midian-tool-call').length > 0);
+    root.first('midian-tool-call').first('midian-tool-btn').click();
+    await sendPromise;
+
+    // backgroundMemory is fire-and-forget; wait for the memory file to land.
+    await waitFor(() => adapter.files.get('.midian/memory/short-term.md')?.includes('Hello world'));
+    const memory = adapter.files.get('.midian/memory/short-term.md');
+    assert.ok(memory.includes('Hello world'), 'extracted facts must be written to short-term.md');
+    assert.ok(memory.includes('### '), 'entries must carry a timestamp header');
+  } finally {
+    settings.memory.enabled = false;
+  }
 });
