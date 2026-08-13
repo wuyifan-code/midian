@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.4] - 2026-08-13
+
+### Added
+
+- Bundle smoke test: builds `src/main.ts` with esbuild, loads it through a mocked `obsidian` module and executes `onload()`, proving the plugin initializes in an Obsidian-like runtime (73 tests total)
+
 ## [0.7.3] - 2026-08-13
 
 ### Added

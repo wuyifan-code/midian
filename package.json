@@ -1,6 +1,6 @@
 {
   "name": "midian",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Midian - a lightweight mobile-first AI chat workspace for Obsidian",
   "main": "main.js",
   "engines": {
@@ -10,7 +10,7 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --test-isolation=none tests/*.test.mts"
+    "test": "node --test --test-isolation=none tests/*.test.mts tests/*.test.cjs"
   },
   "keywords": [
     "obsidian",

@@ -9,7 +9,7 @@ Midian is a lightweight, mobile-first Obsidian plugin (id `midian`) inspired by 
 ```bash
 npm run dev         # watch build; set OBSIDIAN_VAULT to auto-copy into the vault
 npm run typecheck   # tsc --noEmit
-npm test            # node --test --test-isolation=none tests/*.test.mts (Node >= 24 native TS)
+npm test            # node --test --test-isolation=none tests/*.test.mts tests/*.test.cjs (unit + bundle smoke; Node >= 24 native TS)
 npm run build       # production build
 ```
 
