@@ -663,7 +663,7 @@ export class MidianChatView extends ItemView {
     const copy: MidianSession = {
       ...source,
       id: SessionStore.newId(),
-      title: `${source.title}（副本）`,
+      title: `${source.title}${t('chat.forkSuffix')}`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       messages: source.messages.map((m) => ({ ...m })),
@@ -1054,7 +1054,7 @@ export class MidianChatView extends ItemView {
       const result = await executeTool(this.app, request.name, request.arguments);
       return {
         approved: true,
-        result: result.ok ? result.result : `错误: ${result.result}`,
+        result: result.ok ? result.result : `${t('tool.errorPrefix')}${result.result}`,
         isError: !result.ok,
       };
     };

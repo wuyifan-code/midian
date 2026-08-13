@@ -18,7 +18,7 @@ export class MidianSettingsTab extends PluginSettingTab {
     containerEl.empty();
     const settings = this.plugin.settings;
 
-    containerEl.createEl('h3', { text: 'Provider' });
+    containerEl.createEl('h3', { text: t('settings.heading.provider') });
     new Setting(containerEl)
       .setName(t('settings.provider'))
       .setDesc(t('settings.provider.desc'))
@@ -132,7 +132,7 @@ export class MidianSettingsTab extends PluginSettingTab {
       .setDesc(t('settings.persona.desc'))
       .addTextArea((area) =>
         area
-          .setPlaceholder('你是 Midian……')
+          .setPlaceholder(t('settings.personaPlaceholder'))
           .setValue(settings.persona)
           .onChange(async (value) => {
             settings.persona = value;

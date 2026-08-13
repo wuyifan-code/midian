@@ -1,13 +1,14 @@
 import { requestUrl } from 'obsidian';
+import { t } from '../i18n';
 import type { ProviderConfig, ProviderId } from './types';
 import { normalizeBaseUrl } from './types';
 
 export async function testConnection(providerId: ProviderId, config: ProviderConfig): Promise<string> {
   if (!config.apiKey) {
-    return '未配置 API Key';
+    return t('connect.noKey');
   }
   if (!config.model.trim() && providerId === 'openai') {
-    return '未配置模型名称';
+    return t('connect.noModel');
   }
   try {
     if (providerId === 'anthropic') {
@@ -20,7 +21,7 @@ export async function testConnection(providerId: ProviderId, config: ProviderCon
         },
         throw: false,
       });
-      return response.status === 200 ? '连接成功' : `HTTP ${response.status}: ${response.text.slice(0, 300)}`;
+      return response.status === 200 ? t('connect.ok') : `HTTP ${response.status}: ${response.text.slice(0, 300)}`;
     }
     const response = await requestUrl({
       url: `${normalizeBaseUrl(config.baseUrl)}/models`,
@@ -28,8 +29,8 @@ export async function testConnection(providerId: ProviderId, config: ProviderCon
       headers: { Authorization: `Bearer ${config.apiKey}` },
       throw: false,
     });
-    return response.status === 200 ? '连接成功' : `HTTP ${response.status}: ${response.text.slice(0, 300)}`;
+    return response.status === 200 ? t('connect.ok') : `HTTP ${response.status}: ${response.text.slice(0, 300)}`;
   } catch (error) {
-    return `连接失败: ${error instanceof Error ? error.message : String(error)}`;
+    return `${t('connect.failed')}: ${error instanceof Error ? error.message : String(error)}`;
   }
 }

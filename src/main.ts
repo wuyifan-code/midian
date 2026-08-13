@@ -25,30 +25,30 @@ export default class MidianPlugin extends Plugin {
 
     this.registerView(VIEW_TYPE_MIDIAN, (leaf) => new MidianChatView(leaf, this.store, () => this.settings, () => this.saveSettings()));
 
-    this.addRibbonIcon('message-circle', '打开 Midian', () => void this.activateView());
+    this.addRibbonIcon('message-circle', t('menu.openChat'), () => void this.activateView());
     this.addCommand({
       id: 'open-midian-chat',
-      name: '打开 Midian 聊天',
+      name: t('menu.openChat'),
       callback: () => void this.activateView(),
     });
     this.addCommand({
       id: 'new-midian-session',
-      name: '新建 Midian 对话',
+      name: t('menu.newSession'),
       callback: () => void this.openNewSession(),
     });
     this.addCommand({
       id: 'midian-summarize-current-note',
-      name: '总结当前笔记（Midian）',
+      name: t('menu.summarizeNote'),
       callback: () => void this.openWithTemplate('summarize'),
     });
     this.addCommand({
       id: 'midian-rewrite-current-note',
-      name: '改写当前笔记（Midian）',
+      name: t('menu.rewriteNote'),
       callback: () => void this.openWithTemplate('rewrite'),
     });
     this.addCommand({
       id: 'midian-translate-current-note',
-      name: '翻译当前笔记（Midian）',
+      name: t('menu.translateNote'),
       callback: () => void this.openWithTemplate('translate-en'),
     });
 

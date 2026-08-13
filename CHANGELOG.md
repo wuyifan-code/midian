@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.16] - 2026-08-13
+
+### Changed
+
+- **Full i18n completion**: ribbon tooltip, all command names, the settings "Provider" heading, persona placeholder, connection-test notices, fork suffix, tool-error prefix and export headings now go through `t()` (zh/en), so English users no longer see Chinese UI strings
+
 ## [0.7.15] - 2026-08-13
 
 ### Added

@@ -1,7 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildExportMarkdown, sanitizeFilename } from '../src/utils/exportMarkdown.ts';
+import { setLocale } from '../src/i18n/index.ts';
 import type { MidianSession } from '../src/sessions/types.ts';
+
+// exportMarkdown renders user-visible headings through t(); pin zh so the
+// assertions are deterministic regardless of the machine locale.
+setLocale('zh');
 
 function makeSession(partial: Partial<MidianSession> = {}): MidianSession {
   return {
