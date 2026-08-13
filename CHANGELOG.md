@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.6] - 2026-08-13
+
+### Added
+
+- Integration tests for the non-streaming `requestUrl` fallback of both providers (streaming rejected -> fallback parses and delivers the response, 78 tests total)
+- Community-store red-line scan recorded in `docs/SUBMISSION.md` (no eval / innerHTML / Node APIs / electron in the bundle)
+
 ## [0.7.5] - 2026-08-13
 
 ### Added

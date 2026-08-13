@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
 const Module = require('node:module');
 const path = require('node:path');
 const http = require('node:http');
-const { installObsidianMock } = require('./obsidianMock.cjs');
+const { installObsidianMock, setRequestUrlHandler } = require('./obsidianMock.cjs');
 
 const root = path.resolve(__dirname, '..');
 installObsidianMock();
@@ -232,4 +232,86 @@ test('Anthropic: surfaces errors when streaming fails', async () => {
   assert.equal(calls.done, 0);
   assert.equal(calls.errors.length, 1, 'streaming failure should surface one error after the fallback attempt');
   assert.ok(calls.errors[0].length > 0, 'reported error must not be empty');
+});
+
+test('Anthropic: falls back to requestUrl non-streaming when streaming fails', async () => {
+  // The endpoint always rejects streaming; the mocked requestUrl serves the
+  // non-streaming response instead.
+  const server = await startServer((req, res) => {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: { message: 'streaming not supported' } }));
+  });
+  const port = server.address().port;
+  setRequestUrlHandler(async (params) => {
+    const body = JSON.parse(params.body);
+    assert.equal(body.stream, false, 'fallback request must be non-streaming');
+    return {
+      status: 200,
+      text: JSON.stringify({
+        content: [{ type: 'text', text: 'fallback answer' }],
+        usage: { input_tokens: 2, output_tokens: 3 },
+      }),
+      json: {},
+      arrayBuffer: new ArrayBuffer(0),
+      headers: {},
+    };
+  });
+  try {
+    const { calls, callbacks } = makeCallbacks();
+    await runChat(
+      'anthropic',
+      { apiKey: 'test-key', baseUrl: `http://127.0.0.1:${port}`, model: 'test-model', maxTokens: 100 },
+      [{ role: 'user', content: 'hi' }],
+      {},
+      callbacks,
+      new AbortController().signal,
+    );
+    assert.equal(calls.text, 'fallback answer');
+    assert.equal(calls.done, 1);
+    assert.equal(calls.usage.inputTokens, 2);
+    assert.equal(calls.usage.outputTokens, 3);
+    assert.deepEqual(calls.errors, []);
+  } finally {
+    setRequestUrlHandler(null);
+  }
+});
+
+test('OpenAI-compatible: falls back to requestUrl non-streaming when streaming fails', async () => {
+  const server = await startServer((req, res) => {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end('{}');
+  });
+  const port = server.address().port;
+  setRequestUrlHandler(async (params) => {
+    const body = JSON.parse(params.body);
+    assert.equal(body.stream, false, 'fallback request must be non-streaming');
+    return {
+      status: 200,
+      text: JSON.stringify({
+        choices: [{ message: { role: 'assistant', content: 'openai fallback' } }],
+        usage: { prompt_tokens: 4, completion_tokens: 5 },
+      }),
+      json: {},
+      arrayBuffer: new ArrayBuffer(0),
+      headers: {},
+    };
+  });
+  try {
+    const { calls, callbacks } = makeCallbacks();
+    await runChat(
+      'openai',
+      { apiKey: 'test-key', baseUrl: `http://127.0.0.1:${port}`, model: 'test-model', maxTokens: 100 },
+      [{ role: 'user', content: 'hi' }],
+      {},
+      callbacks,
+      new AbortController().signal,
+    );
+    assert.equal(calls.text, 'openai fallback');
+    assert.equal(calls.done, 1);
+    assert.equal(calls.usage.inputTokens, 4);
+    assert.equal(calls.usage.outputTokens, 5);
+    assert.deepEqual(calls.errors, []);
+  } finally {
+    setRequestUrlHandler(null);
+  }
 });

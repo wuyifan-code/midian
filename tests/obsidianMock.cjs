@@ -102,6 +102,16 @@ class FakePlugin extends FakeComponent {
   registerInterval() { return 0; }
 }
 
+// Default requestUrl handler: fails loudly unless a test installs one.
+const requestUrlError = () => {
+  throw new Error('requestUrl must not be used in these tests');
+};
+let requestUrlHandler = requestUrlError;
+
+function setRequestUrlHandler(handler) {
+  requestUrlHandler = handler ?? requestUrlError;
+}
+
 const fakeObsidian = {
   Plugin: FakePlugin,
   ItemView: FakeItemView,
@@ -117,9 +127,7 @@ const fakeObsidian = {
   Vault: class {},
   Platform: { isMobile: false },
   MarkdownRenderer: { render: async () => {} },
-  requestUrl: async () => {
-    throw new Error('requestUrl must not be used in these tests');
-  },
+  requestUrl: async (params) => requestUrlHandler(params),
   normalizePath: (p) => p.replace(/\\/g, '/'),
   setIcon: () => {},
 };
@@ -140,4 +148,4 @@ function installObsidianMock() {
   };
 }
 
-module.exports = { installObsidianMock, registered };
+module.exports = { installObsidianMock, registered, setRequestUrlHandler };
