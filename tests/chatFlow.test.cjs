@@ -20,9 +20,9 @@ globalThis.window = {
   setTimeout: (fn, ms) => setTimeout(fn, ms),
   clearTimeout: (id) => clearTimeout(id),
 };
-if (!globalThis.navigator) {
-  globalThis.navigator = { language: 'en' };
-}
+// Node 24 ships a navigator that follows the system locale; pin it so i18n
+// resolution in the bundle is deterministic across machines.
+Object.defineProperty(globalThis, 'navigator', { value: { language: 'en' }, configurable: true });
 
 async function waitFor(cond, timeoutMs = 2000) {
   const start = Date.now();
@@ -318,4 +318,15 @@ test('image attachments are sent as base64 and kept in the session', async () =>
   assert.ok(firstBody.includes('iVBOR'), 'request must include base64 image data (PNG magic)');
   const saved = adapter.files.get(newSessionFile());
   assert.ok(saved.includes('img/pic.png'), 'session must keep the image path');
+});
+
+test('slash menu filters commands and inserts the template', () => {
+  view.textarea.value = '/sum';
+  view.textarea.selectionStart = view.textarea.value.length;
+  view.updateSlashMenu();
+  assert.ok(view.slashMenu.visible, 'slash menu should open');
+  assert.equal(view.slashMenu.items.length, 1, 'only summarize should match /sum');
+  view.slashMenu.pick();
+  assert.ok(view.textarea.value.startsWith('Summarize'), 'the template must be inserted');
+  assert.ok(!view.slashMenu.visible, 'menu must close after picking');
 });

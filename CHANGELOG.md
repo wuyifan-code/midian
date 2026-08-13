@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.10] - 2026-08-13
+
+### Added
+
+- Slash menu chat flow test (filtering + template insertion; navigator pinned to en so i18n resolution is deterministic in tests)
+
+### Changed
+
+- Touch devices: larger hit targets (header icons 40px, send 44px, action/copy buttons 34px, chip remove 26px)
+- Landscape safe-area: composer and message list now respect `safe-area-inset-left/right` for notched phones
+
 ## [0.7.9] - 2026-08-13
 
 ### Added
