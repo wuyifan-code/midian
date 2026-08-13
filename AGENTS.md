@@ -39,7 +39,7 @@ Tests mirror pure logic only. Anything importing `obsidian` cannot run under nod
 ## Hard Rules
 
 - **Mobile parity**: every feature must work on mobile. Prefer `requestUrl` over `fetch` when CORS is uncertain; `fetch` streaming with `requestUrl` fallback is the established pattern.
-- **No new runtime dependencies.** The bundle must stay small (~73KB minified as of v0.6.0).
+- **No new runtime dependencies.** The bundle must stay small (~76KB minified as of v0.7.5).
 - **Vault-scoped writes**: paths must pass `resolveSafePath` (`src/utils/vaultPath.ts`) before any adapter write.
 - **User data is sacred**: session/memory files must never be clobbered; merge instead of overwrite (see `update_properties`).
 - Comments, identifiers, commit messages in English; user-visible strings must go through `t()` in both `zh.ts` and `en.ts`.
