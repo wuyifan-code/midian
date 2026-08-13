@@ -17,6 +17,7 @@ export const en: Record<LocaleKey, string> = {
   'chat.recent': 'Recent',
   'chat.error.noKey': 'Configure your API key in settings first',
   'chat.error.noModel': 'Fill in a model name in settings first',
+  'chat.error.networkHint': 'Network or CORS issue: check your connection and Base URL. OpenAI-compatible endpoints that block browser access automatically fall back to non-streaming.',
   'chat.thinking': 'Thinking',
   'chat.pending': 'Thinking…',
   'chat.copy': 'Copy',

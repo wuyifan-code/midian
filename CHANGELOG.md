@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.3] - 2026-08-13
+
+### Added
+
+- Network / CORS failure hint appended to chat errors (zh / en), with guidance on Base URL and the non-streaming fallback
+
+### Fixed
+
+- Session history listing now reads files in parallel, so large histories open quickly on mobile
+
 ## [0.7.2] - 2026-08-13
 
 ### Added

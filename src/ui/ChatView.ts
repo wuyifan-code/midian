@@ -984,7 +984,10 @@ export class MidianChatView extends ItemView {
       }
       this.clearPendingCards(assistantEl);
       const errorRow = assistantEl.createDiv('midian-error-row');
-      errorRow.appendChild(buildErrorEl(error.message));
+      const message = error.message;
+      const hint =
+        /fetch|network|cors|ECONN|ETIMEDOUT|Failed to/i.test(message) ? `\n\n${t('chat.error.networkHint')}` : '';
+      errorRow.appendChild(buildErrorEl(`${message}${hint}`));
       const retryButton = errorRow.createEl('button', { cls: 'midian-retry-button' });
       retryButton.setText(t('chat.retry'));
       retryButton.addEventListener('click', () => {

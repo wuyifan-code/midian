@@ -57,18 +57,20 @@ export class SessionStore {
       return [];
     }
     const { files } = await this.vault.adapter.list(this.root);
-    const sessions: MidianSession[] = [];
-    for (const file of files) {
-      if (!file.endsWith('.json')) {
-        continue;
-      }
-      try {
-        const raw = await this.vault.adapter.read(file);
-        sessions.push(JSON.parse(raw) as MidianSession);
-      } catch {
-        // skip corrupt session files
-      }
-    }
+    const sessions = (
+      await Promise.all(
+        files
+          .filter((file) => file.endsWith('.json'))
+          .map(async (file) => {
+            try {
+              const raw = await this.vault.adapter.read(file);
+              return JSON.parse(raw) as MidianSession;
+            } catch {
+              return null; // skip corrupt session files
+            }
+          }),
+      )
+    ).filter((s): s is MidianSession => s !== null);
     sessions.sort((a, b) => b.updatedAt - a.updatedAt);
     return sessions;
   }

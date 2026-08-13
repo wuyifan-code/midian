@@ -15,6 +15,7 @@ export const zh = {
   'chat.recent': '最近对话',
   'chat.error.noKey': '请先在设置中配置 API Key',
   'chat.error.noModel': '请先在设置中填写模型名称',
+  'chat.error.networkHint': '网络或跨域（CORS）问题：请检查网络与 Base URL；若使用 OpenAI 兼容端点且禁止浏览器直连，插件会自动降级为非流式。',
   'chat.thinking': '思考过程',
   'chat.pending': '正在思考…',
   'chat.copy': '复制',

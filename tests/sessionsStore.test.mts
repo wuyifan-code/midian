@@ -67,3 +67,14 @@ test('list returns [] when the root does not exist', async () => {
   const store = new SessionStore(makeVault());
   assert.deepEqual(await store.list(), []);
 });
+
+test('list handles many sessions in parallel', async () => {
+  const store = new SessionStore(makeVault());
+  for (let i = 0; i < 50; i++) {
+    await store.save(makeSession({ id: `s${i}`, updatedAt: 1000 + i, title: `S${i}` }));
+  }
+  const listed = await store.list();
+  assert.equal(listed.length, 50);
+  assert.equal(listed[0].id, 's49');
+  assert.equal(listed[49].id, 's0');
+});
