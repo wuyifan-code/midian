@@ -63,35 +63,50 @@ const settings = {
 };
 let fetchCalls = 0;
 const requestBodies = [];
+let sseMode = 'tool';
+const seenSessionFiles = new Set();
+
+function startTurn(mode) {
+  sseMode = mode;
+  fetchCalls = 0;
+  requestBodies.length = 0;
+  view.newSession();
+  view.textarea.value = 'read a.md';
+}
+
+function newSessionFile() {
+  const files = [...adapter.files.keys()].filter(
+    (f) => f.startsWith('.midian/sessions/') && !seenSessionFiles.has(f),
+  );
+  assert.equal(files.length, 1, 'exactly one new session file expected');
+  seenSessionFiles.add(files[0]);
+  return files[0];
+}
 
 function sse(event, data) {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
-function sseForRound(round) {
-  if (round > 2) {
-    // Background auto-title call: respond with no text so no title is set.
-    return sse('message_start', { type: 'message_start', message: { usage: { input_tokens: 1 } } }) +
-      sse('message_stop', { type: 'message_stop' });
-  }
-  if (round === 1) {
-    return [
-      sse('message_start', { type: 'message_start', message: { usage: { input_tokens: 10 } } }),
-      sse('content_block_start', {
-        type: 'content_block_start',
-        index: 0,
-        content_block: { type: 'tool_use', id: 'toolu_1', name: 'read_note', input: {} },
-      }),
-      sse('content_block_delta', {
-        type: 'content_block_delta',
-        index: 0,
-        delta: { type: 'input_json_delta', partial_json: '{"path":"a.md"}' },
-      }),
-      sse('content_block_stop', { type: 'content_block_stop', index: 0 }),
-      sse('message_delta', { type: 'message_delta', delta: { stop_reason: 'tool_use' }, usage: { output_tokens: 5 } }),
-      sse('message_stop', { type: 'message_stop' }),
-    ].join('');
-  }
+function toolRound(name, argsJson, id) {
+  return [
+    sse('message_start', { type: 'message_start', message: { usage: { input_tokens: 10 } } }),
+    sse('content_block_start', {
+      type: 'content_block_start',
+      index: 0,
+      content_block: { type: 'tool_use', id, name, input: {} },
+    }),
+    sse('content_block_delta', {
+      type: 'content_block_delta',
+      index: 0,
+      delta: { type: 'input_json_delta', partial_json: argsJson },
+    }),
+    sse('content_block_stop', { type: 'content_block_stop', index: 0 }),
+    sse('message_delta', { type: 'message_delta', delta: { stop_reason: 'tool_use' }, usage: { output_tokens: 5 } }),
+    sse('message_stop', { type: 'message_stop' }),
+  ].join('');
+}
+
+function textRound() {
   return [
     sse('message_start', { type: 'message_start', message: { usage: { input_tokens: 12 } } }),
     sse('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }),
@@ -101,6 +116,21 @@ function sseForRound(round) {
     sse('message_delta', { type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 7 } }),
     sse('message_stop', { type: 'message_stop' }),
   ].join('');
+}
+
+function sseForRound(round) {
+  if (round > 2) {
+    // Background auto-title call: respond with no text so no title is set.
+    return sse('message_start', { type: 'message_start', message: { usage: { input_tokens: 1 } } }) +
+      sse('message_stop', { type: 'message_stop' });
+  }
+  if (round === 1) {
+    if (sseMode === 'ask') {
+      return toolRound('ask_user', '{"question":"Are you ready?","options":["yes","no"]}', 'toolu_ask');
+    }
+    return toolRound('read_note', '{"path":"a.md"}', 'toolu_1');
+  }
+  return textRound();
 }
 
 before(() => {
@@ -166,7 +196,7 @@ test('view opens with composer and welcome', async () => {
 });
 
 test('sending a message streams, approves a tool call and saves the session', async () => {
-  view.textarea.value = 'read a.md';
+  startTurn('tool');
   const sendPromise = view.send();
 
   // The tool round blocks until the user approves; approve it mid-flight.
@@ -179,9 +209,7 @@ test('sending a message streams, approves a tool call and saves the session', as
   await sendPromise;
 
   // Session persisted with the user turn and the final assistant text.
-  const sessionFiles = [...adapter.files.keys()].filter((f) => f.startsWith('.midian/sessions/'));
-  assert.equal(sessionFiles.length, 1, 'one session file should be written');
-  const saved = adapter.files.get(sessionFiles[0]);
+  const saved = adapter.files.get(newSessionFile());
   assert.ok(saved.includes('read a.md'), 'user message must be saved');
   assert.ok(saved.includes('Hello world'), 'streamed assistant text must be saved');
   assert.ok(saved.includes('"role": "assistant"'));
@@ -209,8 +237,64 @@ test('sending a message streams, approves a tool call and saves the session', as
 test('rewind removes the last assistant turn and its user message', async () => {
   await view.rewind();
   const sessionFiles = [...adapter.files.keys()].filter((f) => f.startsWith('.midian/sessions/'));
-  const saved = adapter.files.get(sessionFiles[0]);
+  const saved = adapter.files.get(sessionFiles[sessionFiles.length - 1]);
   assert.ok(!saved.includes('Hello world'), 'assistant turn must be removed by rewind');
   // The session title legitimately keeps the original prompt text.
   assert.ok(saved.includes('"messages": []'), 'session should end up empty');
+});
+
+test('stopping during a pending approval cancels the card and completes the turn', async () => {
+  startTurn('tool');
+  const sendPromise = view.send();
+  const root = view.contentEl.children[0];
+  await waitFor(() => root.findAll('midian-tool-call').length > 0);
+
+  // Press stop while the approval card is still awaiting a decision.
+  view.sendButton.click();
+  await sendPromise;
+
+  assert.equal(view.streaming, false, 'turn must complete after stopping');
+  const roundTwo = JSON.stringify(requestBodies[1] ?? {});
+  assert.ok(roundTwo.includes('denied'), 'the cancelled card must produce a denied tool result');
+  const saved = adapter.files.get(newSessionFile());
+  assert.ok(saved.includes('"role": "assistant"'), 'session must still be saved after stop');
+});
+
+test('ask_user is intercepted by the UI and the answer reaches the model', async () => {
+  startTurn('ask');
+  const sendPromise = view.send();
+  const root = view.contentEl.children[0];
+  await waitFor(() => root.findAll('midian-ask-user').length > 0);
+
+  const card = root.first('midian-ask-user');
+  const inputRow = card.first('midian-ask-user-input-row');
+  const input = inputRow.children[0];
+  input.value = '42';
+  inputRow.children[1].click();
+  await sendPromise;
+
+  const roundTwo = JSON.stringify(requestBodies[1] ?? {});
+  assert.ok(roundTwo.includes('用户回答：42'), 'the answer must be sent back to the model');
+  const saved = adapter.files.get(newSessionFile());
+  assert.ok(saved.includes('Hello world'), 'final answer must be saved');
+});
+
+test('editing the last user message restores it to the composer and truncates', async () => {
+  startTurn('tool');
+  const sendPromise = view.send();
+  const root = view.contentEl.children[0];
+  await waitFor(() => root.findAll('midian-tool-call').length > 0);
+  root.first('midian-tool-call').first('midian-tool-btn').click();
+  await sendPromise;
+
+  await view.renderSession();
+  const userMsg = root.findAll('midian-message').find((el) => el.hasClass('midian-user'));
+  const editButton = userMsg.first('midian-action-button');
+  assert.ok(editButton, 'edit button should be offered on the last user message');
+  editButton.click();
+
+  await waitFor(() => view.textarea.value === 'read a.md');
+  assert.equal(view.textarea.value, 'read a.md', 'message must be restored to the composer');
+  const saved = JSON.parse(adapter.files.get(newSessionFile()));
+  assert.equal(saved.messages.length, 0, 'session must be truncated before the edited message');
 });

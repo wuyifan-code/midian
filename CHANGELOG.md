@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.8] - 2026-08-13
+
+### Added
+
+- Chat flow regression tests: stopping mid-approval cancels the pending card and completes the turn (locks in the abort-safe fix), `ask_user` interception with the answer sent back to the model, and editing the last user message restores it to the composer and truncates the session (84 tests total)
+
 ## [0.7.7] - 2026-08-13
 
 ### Added

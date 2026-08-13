@@ -87,10 +87,12 @@ class FakeEl {
     }
   }
 
-  addClass(cls) {
-    for (const c of String(cls).split(/\s+/)) {
-      if (c && !this.classes.includes(c)) {
-        this.classes.push(c);
+  addClass(...classes) {
+    for (const arg of classes) {
+      for (const c of String(arg).split(/\s+/)) {
+        if (c && !this.classes.includes(c)) {
+          this.classes.push(c);
+        }
       }
     }
   }
